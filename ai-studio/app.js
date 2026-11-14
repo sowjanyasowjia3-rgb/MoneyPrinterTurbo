@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s);const state={api:localStorage.getItem('studio_api')||'',key:localStorage.getItem('studio_key')||'',image:null,task:null,history:[]};
-function headers(json=true){const h={};if(json)h['Content-Type']='application/json';if(state.key)h.Authorization='Bearer '+state.key;return h}
+function headers(json=true){const h={};if(json)h['Content-Type']='application/json';if(state.key)h['x-api-key']=state.key;return h}
 function api(path){return state.api.replace(/\/$/,'')+path}
 function setConnection(ok,msg){$('#connection-label').textContent=msg|| (ok?'API connected':'API not connected');$('.status-dot').classList.toggle('ok',!!ok)}
 function showSettings(){ $('#api-url').value=state.api;$('#api-key').value=state.key;$('#settings-status').textContent='';$('#settings-dialog').showModal()}

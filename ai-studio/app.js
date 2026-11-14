@@ -1,4 +1,4 @@
-const $=s=>document.querySelector(s);const state={api:localStorage.getItem('studio_api')||'https://moneyprinterturbo-ai-api.onrender.com',key:localStorage.getItem('studio_key')||'',image:null,task:null,history:[]};
+const $=s=>document.querySelector(s);const state={api:localStorage.getItem('studio_api')||'https://moneyprinterturbo-api-v58m.onrender.com',key:localStorage.getItem('studio_key')||'',image:null,task:null,history:[]};
 function headers(json=true){const h={};if(json)h['Content-Type']='application/json';if(state.key)h['x-api-key']=state.key;return h}
 function api(path){return state.api.replace(/\/$/,'')+path}
 function setConnection(ok,msg){$('#connection-label').textContent=msg|| (ok?'API connected':'API not connected');$('.status-dot').classList.toggle('ok',!!ok)}

@@ -1,0 +1,189 @@
+openapi: 3.1.0
+info:
+  title: MoneyPrinterTurbo AI Studio
+  version: 1.0.0
+  description: Generate images and short videos with the user's MoneyPrinterTurbo backend. Video jobs are asynchronous; create a job, then poll its task ID until finished.
+servers:
+  - url: https://moneyprinterturbo-api-v58m.onrender.com
+    description: Hosted MoneyPrinterTurbo API
+security:
+  - ApiKeyAuth: []
+paths:
+  /api/v1/ai-studio/images:
+    post:
+      operationId: generateImage
+      summary: Generate an image
+      description: Generate an image from a text prompt. Returns base64 image data in data.image_base64. Only works when an OpenAI-compatible image provider is configured on the backend.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                  minLength: 1
+                  maxLength: 4000
+                  description: Detailed visual description of the image.
+                size:
+                  type: string
+                  enum: [1024x1024, 1024x1536, 1536x1024]
+                  default: 1024x1024
+                quality:
+                  type: string
+                  default: standard
+      responses:
+        '200':
+          description: Image generated. Image bytes are returned as base64.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageResponse'
+        '503':
+          description: No image provider configured or provider unavailable.
+  /api/v1/videos:
+    post:
+      operationId: createVideo
+      summary: Create a short video
+      description: Submit an asynchronous short-video generation job. Save the returned task_id and call getVideoTask until state is complete or failed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [video_subject]
+              properties:
+                video_subject:
+                  type: string
+                  description: Topic or story for the short video.
+                video_script:
+                  type: string
+                  default: ""
+                  description: Optional narration script. Leave empty to let the backend create it.
+                video_language:
+                  type: string
+                  default: English
+                video_aspect:
+                  type: string
+                  description: Video orientation. Use the backend's configured portrait default unless the user asks for landscape.
+                video_count:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  default: 1
+                video_clip_duration:
+                  type: integer
+                  minimum: 1
+                  maximum: 15
+                  default: 5
+                subtitle_enabled:
+                  type: boolean
+                  default: true
+                voice_name:
+                  type: string
+                  default: zh-CN-XiaoxiaoNeural-Female
+      responses:
+        '200':
+          description: Video task accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskCreated'
+  /api/v1/tasks/{task_id}:
+    get:
+      operationId: getVideoTask
+      summary: Check video generation status
+      description: Get progress and generated video URLs for a task. Repeat until state is completed or failed.
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task status and output URLs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskStatus'
+  /ping:
+    get:
+      operationId: checkBackend
+      summary: Check whether the backend is reachable
+      security: []
+      responses:
+        '200':
+          description: Backend is reachable.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    ImageResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            image_base64:
+              type: string
+              description: Base64-encoded PNG image.
+            mime_type:
+              type: string
+            provider:
+              type: string
+            model:
+              type: string
+    TaskCreated:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            task_id:
+              type: string
+    TaskStatus:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            task_id:
+              type: string
+            state:
+              type: integer
+              description: Backend task state; negative indicates failure and positive terminal states indicate completion.
+            progress:
+              type: integer
+            videos:
+              type: array
+              items:
+                type: string
+                format: uri
+            combined_videos:
+              type: array
+              items:
+                type: string
+                format: uri
+            error:
+              type: string
+            failed_stage:
+              type: string

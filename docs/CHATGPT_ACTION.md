@@ -23,7 +23,7 @@ Do not paste provider keys (image model, LLM, or other vendor secrets) into the 
 ## Important limitations
 
 - The Action can submit video jobs and check their status. Video generation still depends on the MoneyPrinterTurbo backend's configured script, footage, voice and rendering dependencies.
-- Image generation works only after an OpenAI-compatible image provider is configured on the backend. The Action does not provide a model or free compute by itself.
+- Image generation supports a local OpenAI-compatible provider and Cloudflare Workers AI (FLUX.1 schnell), with the legacy OpenAI-compatible cloud provider as a last fallback. Configure Cloudflare credentials in the backend host's private environment settings; never add them to the Action. Cloudflare's free daily allocation is limited and can change.
 - Render free services may sleep, have limited CPU and ephemeral storage. A returned media URL may stop working after a restart or file cleanup; download completed videos promptly.
 - ChatGPT Actions are not the old ChatGPT Plugins feature. They are configured on a custom GPT and may not be available in every ChatGPT plan or client.
 - Never expose the backend API key in a public website, prompt, screenshot, or repository.

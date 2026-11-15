@@ -1,0 +1,11 @@
+{
+  "appId": "com.moneyprinterturbo.aistudio",
+  "appName": "MoneyPrinterTurbo AI Studio",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

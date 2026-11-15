@@ -3,7 +3,9 @@
 Tries a self-hosted OpenAI-compatible image endpoint first, then an optional
 cloud OpenAI-compatible endpoint. Provider credentials remain server-side.
 """
+import base64
 import os
+from urllib.parse import quote
 
 import requests
 from fastapi import Depends, Request
@@ -23,6 +25,55 @@ class ImageGenerationRequest(BaseModel):
     prompt: str = Field(min_length=1, max_length=4000)
     size: str = "1024x1024"
     quality: str = "standard"
+
+
+def _cloudflare_provider(request: ImageGenerationRequest):
+    """Call Cloudflare Workers AI directly; credentials stay on the backend."""
+    account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID", "").strip()
+    api_token = os.getenv("CLOUDFLARE_API_TOKEN", "").strip()
+    model = os.getenv(
+        "AI_STUDIO_CLOUDFLARE_IMAGE_MODEL",
+        "@cf/black-forest-labs/flux-1-schnell",
+    ).strip()
+    if not account_id or not api_token:
+        return None
+
+    # FLUX.1 schnell accepts prompt + steps (max 8); it does not accept size.
+    url = (
+        "https://api.cloudflare.com/client/v4/accounts/"
+        + quote(account_id, safe="")
+        + "/ai/run/"
+        + quote(model, safe="@/-")
+    )
+    response = requests.post(
+        url,
+        headers={
+            "Authorization": "Bearer " + api_token,
+            "Content-Type": "application/json",
+        },
+        json={"prompt": request.prompt, "steps": 4},
+        timeout=(10, 240),
+    )
+    response.raise_for_status()
+
+    content_type = response.headers.get("content-type", "").split(";", 1)[0].lower()
+    if content_type.startswith("image/"):
+        encoded = base64.b64encode(response.content).decode("ascii")
+        mime_type = content_type
+    else:
+        payload = response.json()
+        result = payload.get("result", payload) if isinstance(payload, dict) else {}
+        encoded = result.get("image") if isinstance(result, dict) else None
+        mime_type = "image/jpeg"
+        if not isinstance(encoded, str) or not encoded:
+            raise ValueError("Cloudflare returned no image data")
+
+    return {
+        "image_base64": encoded,
+        "mime_type": mime_type,
+        "provider": "cloudflare-workers-ai",
+        "model": model,
+    }
 
 
 def _provider(name: str, request: ImageGenerationRequest):
@@ -67,18 +118,32 @@ def generate_image(request: Request, body: ImageGenerationRequest):
             message="unsupported image size",
         )
     failures = []
-    for provider in ("local", "cloud"):
-        try:
-            result = _provider(provider, body)
-            if result:
-                return utils.get_response(200, result)
-        except (requests.RequestException, ValueError, TypeError) as exc:
-            # Do not expose upstream response bodies, credentials, or request headers.
-            failures.append(provider)
+    try:
+        result = _provider("local", body)
+        if result:
+            return utils.get_response(200, result)
+    except (requests.RequestException, ValueError, TypeError):
+        failures.append("local")
+
+    try:
+        result = _cloudflare_provider(body)
+        if result:
+            return utils.get_response(200, result)
+    except (requests.RequestException, ValueError, TypeError):
+        failures.append("cloudflare-workers-ai")
+
+    # Preserve the configured OpenAI-compatible provider as a last resort.
+    try:
+        result = _provider("cloud", body)
+        if result:
+            return utils.get_response(200, result)
+    except (requests.RequestException, ValueError, TypeError):
+        failures.append("cloud")
     if not failures:
         message = (
-            "Image generation is not configured. Set AI_STUDIO_LOCAL_IMAGE_URL "
-            "and AI_STUDIO_LOCAL_IMAGE_MODEL, or configure the cloud fallback."
+            "Image generation is not configured. Set CLOUDFLARE_ACCOUNT_ID and "
+            "CLOUDFLARE_API_TOKEN for Cloudflare Workers AI, or configure a local "
+            "or OpenAI-compatible image provider."
         )
     else:
         message = (

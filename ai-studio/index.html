@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090b12"><meta name="description" content="AI Studio — create images and short videos with open models.">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css"><title>AI Studio</title>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#"><span class="brand-mark">✳</span><span>AI <b>Studio</b><small>CREATIVE WORKSPACE</small></span></a>
+      <div class="nav-label">WORKSPACE</div>
+      <button type="button" class="nav active" data-tab="image"><span>▧</span> Image studio</button>
+      <button type="button" class="nav" data-tab="video"><span>▶</span> Video studio</button>
+      <button type="button" class="nav" data-tab="history"><span>◷</span> My creations</button>
+      <div class="sidebar-bottom"><div class="status-dot"></div><span id="connection-label">API not connected</span><button id="settings-open" class="icon-btn" aria-label="Settings">⚙</button></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div class="mobile-brand">✳ AI Studio</div><div class="top-note">OPEN MODEL CREATIVE SUITE</div><button class="btn btn-quiet" id="top-settings">⚙ <span>Settings</span></button></header>
+      <section class="page active" id="page-image">
+        <div class="page-heading"><div><div class="eyebrow">GENERATIVE CANVAS / 01</div><h1>Image <span>studio</span></h1><p>Turn a simple idea into a visual worth keeping.</p></div><span class="pill">✳ HYBRID MODE</span></div>
+        <div class="studio-grid">
+          <section class="panel composer">
+            <div class="panel-title"><span class="step">01</span><div><h2>Describe your image</h2><p>Be clear about subject, style, lighting and mood.</p></div></div>
+            <label for="image-prompt">YOUR PROMPT</label><textarea id="image-prompt" rows="6" placeholder="A cinematic photograph of a quiet Japanese street after rain, warm lanterns reflecting on the pavement, 35mm film..."></textarea>
+            <div class="prompt-tools"><button class="chip" data-prompt="Photorealistic, cinematic lighting, highly detailed">＋ Photorealistic</button><button class="chip" data-prompt="Editorial composition, art direction, premium color grading">＋ Editorial</button><button class="chip" data-prompt="Dreamlike, imaginative, surreal atmosphere">＋ Surreal</button></div>
+            <div class="field-row"><div class="field"><label for="image-size">ASPECT RATIO</label><select id="image-size"><option value="1024x1024">Square · 1:1</option><option value="1024x1536">Portrait · 2:3</option><option value="1536x1024">Landscape · 3:2</option></select></div><div class="field"><label for="image-quality">QUALITY</label><select id="image-quality"><option value="standard">Standard</option><option value="high">High (if supported)</option></select></div></div>
+            <div class="provider-note"><span class="pulse"></span><div><b>Hybrid generation</b><small>Local model first, cloud fallback when configured.</small></div><span class="provider-tag">AUTO</span></div>
+            <button class="btn btn-primary btn-wide" id="generate-image"><span>✳</span> Generate image <kbd>↵</kbd></button>
+            <p class="fineprint">Generation uses the model providers configured on your backend. Free quotas and hardware limits may apply.</p>
+          </section>
+          <section class="panel preview-panel"><div class="preview-head"><div><span class="eyebrow">CANVAS PREVIEW</span><h2>Your next creation</h2></div><span class="live-tag"><i></i> READY</span></div><div class="preview" id="image-preview"><div class="preview-orbit"><span>✳</span></div><h3>Your canvas is waiting</h3><p>Write a prompt and generate your first image.</p></div><div class="preview-actions"><span id="image-meta">PNG · High resolution</span><button class="btn btn-outline" id="download-image" disabled>↓ Download</button></div></section>
+        </div>
+      </section>
+      <section class="page" id="page-video">
+        <div class="page-heading"><div><div class="eyebrow">GENERATIVE CANVAS / 02</div><h1>Video <span>studio</span></h1><p>Make vertical shorts and cinematic clips from a topic.</p></div><span class="pill">MONEYPRINTERTURBO</span></div>
+        <div class="studio-grid">
+          <section class="panel composer"><div class="panel-title"><span class="step">01</span><div><h2>Start with an idea</h2><p>Your backend creates the script, voice, subtitles and video.</p></div></div>
+            <label for="video-topic">VIDEO TOPIC</label><textarea id="video-topic" rows="5" placeholder="5 surprising facts about the ocean..."></textarea>
+            <div class="field-row"><div class="field"><label for="video-aspect">FORMAT</label><select id="video-aspect"><option value="9:16">Vertical · 9:16</option><option value="16:9">Landscape · 16:9</option><option value="1:1">Square · 1:1</option></select></div><div class="field"><label for="video-language">LANGUAGE</label><select id="video-language"><option value="">Auto detect</option><option>English</option><option>Hindi</option><option>Odia</option><option>Spanish</option></select></div></div>
+            <label class="check"><input type="checkbox" id="video-subtitles" checked> Add subtitles</label>
+            <button class="btn btn-primary btn-wide" id="generate-video">▶ Create video</button><p class="fineprint">Uses your existing MoneyPrinterTurbo video pipeline and configured services.</p>
+          </section>
+          <section class="panel preview-panel"><div class="preview-head"><div><span class="eyebrow">RENDER STATUS</span><h2>Your video</h2></div><span class="live-tag"><i></i> <span id="video-state">IDLE</span></span></div><div class="preview video-preview" id="video-preview"><div class="video-symbol">▶</div><h3>No render in progress</h3><p>Start a video task to see its progress here.</p></div><div class="task-details" id="task-details"></div><div class="preview-actions"><span id="video-meta">MP4 · Task queue</span><a class="btn btn-outline disabled" id="download-video" href="#" target="_blank" rel="noopener">↓ Open video</a></div></section>
+        </div>
+      </section>
+      <section class="page" id="page-history"><div class="page-heading"><div><div class="eyebrow">YOUR WORKSPACE / 03</div><h1>My <span>creations</span></h1><p>Recent generations in this browser session.</p></div></div><div class="history-grid" id="history-grid"><div class="empty-history">Your generated images and videos will appear here.</div></div></section>
+      <footer>AI STUDIO <span>·</span> OPEN SOURCE CREATIVE TOOLS <span>·</span> BUILT ON MONEYPRINTERTURBO</footer>
+    </main>
+  </div>
+  <div id="settings-dialog" class="settings-overlay" hidden aria-hidden="true"><form class="settings-card" onsubmit="return false"><div class="dialog-head"><div><div class="eyebrow">CONNECTION</div><h2>Backend settings</h2></div><button type="button" class="icon-btn" id="settings-close" aria-label="Close">✕</button></div><label for="api-url">MONEYPRINTERTURBO API URL</label><input id="api-url" type="url" placeholder="https://your-api.example.com"><label for="api-key">API KEY <span class="muted">(if enabled on backend)</span></label><input id="api-key" type="password" placeholder="Optional API key" autocomplete="off"><p class="fineprint">Your API URL and key are saved only in this browser. Use HTTPS for remote deployments. Never put provider secrets in this app.</p><div class="dialog-actions"><button type="button" class="btn btn-outline" id="settings-cancel">Cancel</button><button type="button" class="btn btn-primary" id="save-settings">Save & test</button></div><p id="settings-status" class="settings-status"></p></form></div>
+  <script src="./app.js"></script>
+</body></html>

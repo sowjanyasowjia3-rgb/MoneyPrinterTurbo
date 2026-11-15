@@ -18,8 +18,15 @@ python -m http.server 8080
 
 Open `http://localhost:8080`, select Settings, and enter the URL of your MoneyPrinterTurbo API. For remote hosting, configure backend CORS to allow the exact frontend origin. Do not use wildcard CORS with an unauthenticated public API.
 
-## Android
-Open the HTTPS URL in Android Chrome and choose **Install app** from the browser menu. This PWA provides an installable Android experience without a separate native build toolchain. A Play Store APK/AAB can be added later with a Capacitor wrapper.
+## Android APK
+A native Android wrapper is configured with Capacitor. GitHub Actions builds a debug APK in the cloud, so a local Android Studio installation is not required.
+
+1. Open the repository's **Actions** tab.
+2. Choose **Build AI Studio Android APK** and tap **Run workflow** on `feature/ai-studio-hybrid`.
+3. When the run succeeds, download the `moneyprinterturbo-ai-studio-debug-apk` artifact ZIP and extract `app-debug.apk`.
+4. Install the APK on Android. See [ANDROID.md](./ANDROID.md) for backend CORS and setup details.
+
+The APK reuses the existing AI Studio screens and MoneyPrinterTurbo API; it does not contain or run the image/video models locally. The workflow creates an unsigned debug APK for testing, not a Play Store-signed release.
 
 ## Hybrid image providers
 Configure providers on the backend, never in browser JavaScript:

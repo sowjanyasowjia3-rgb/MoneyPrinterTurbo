@@ -10,10 +10,15 @@ android {
         applicationId = "com.dreamvideo.memories"
         minSdk = 26
         targetSdk = 35
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
         versionCode = 1
         versionName = "0.1.0"
     }
     buildFeatures { compose = true }
+    kotlinOptions { jvmTarget = "17" }
 }
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))

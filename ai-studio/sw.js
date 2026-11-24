@@ -1,11 +1,2 @@
-const CACHE='ai-studio-v7';
-const ASSETS=['./','./index.html','./styles.css','./app.js?v=7','./manifest.webmanifest','./icon.svg'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('ai-studio-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{
- if(event.request.method!=='GET'||new URL(event.request.url).origin!==self.location.origin)return;
- event.respondWith(fetch(event.request).then(response=>{
-  if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));}
-  return response;
- }).catch(()=>caches.match(event.request)));
-});
+self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('ai-studio-')).map(k=>caches.delete(k)));await self.registration.unregister();await self.clients.claim();})()));

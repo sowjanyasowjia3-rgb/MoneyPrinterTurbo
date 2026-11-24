@@ -334,6 +334,9 @@ def _generate_response(
 
         logger.info(f"llm provider: {llm_provider}")
         api_key = runtime_app_config.get(provider.config_key("api_key"), "")
+        # Allow hosted deployments to provide Moonshot credentials securely via env.
+        if llm_provider == "moonshot" and not api_key:
+            api_key = os.getenv("MOONSHOT_API_KEY", "").strip()
         configured_model = runtime_app_config.get(provider.config_key("model_name"), "")
         model_name = provider.resolve_model_name(configured_model)
         if configured_model and model_name != configured_model:
